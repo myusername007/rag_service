@@ -16,7 +16,7 @@ async def upload_doc(request: UploadRequest):
 
 @app.post("/ask", response_model=AskResponse)
 async def ask_doc(request: AskRequest):
-    result = await ask_document(question=request.question)
+    result = await ask_document(question=request.question, doc_id=request.doc_id)
     if not result:
         raise HTTPException(
             status_code=404,

@@ -10,6 +10,7 @@ class UploadResponse(BaseModel):
 
 class AskRequest(BaseModel):
     question: str
+    doc_id: str | None = None
 
 class AskResponse(BaseModel):
     answear: str

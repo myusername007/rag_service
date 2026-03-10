@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv() 
 
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-chroma = chromadb.Client()
+chroma = chromadb.PersistentClient(path="./chroma_db")
 collection = chroma.get_or_create_collection("documents")
 
 def split_into_chunks(text: str, chunk_size: int = 200) -> list[str]:
@@ -19,17 +19,19 @@ def split_into_chunks(text: str, chunk_size: int = 200) -> list[str]:
 async def upload_document(doc_id: str, text: str) -> int:
     chunks = split_into_chunks(text)
     ids = [f"{doc_id}_chunk_{i}" for i in range(len(chunks))]
-    collection.add(documents=chunks, ids=ids)
+    metadatas = [{"doc_id": doc_id} for _ in chunks]  # додаємо metadata
+    collection.add(documents=chunks, ids=ids, metadatas=metadatas)
     return len(chunks)
 
-async def ask_document(question: str, n_results: int = 3) -> str:
+async def ask_document(question: str, doc_id: str | None = None, n_results: int = 3) -> str:
+    where = {"doc_id": doc_id} if doc_id else None
     results = collection.query(
-        query_texts=[question],
-        n_results=n_results
-    )
+    query_texts=[question],
+    n_results=n_results,
+    where=where  # не where_document, а where
+)
     relevant_chunks = results["documents"][0]
     context = "\n\n".join(relevant_chunks)
-
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=512,
