@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from schemas import AskRequest, AskResponse, UploadRequest, UploadResponse
-from services.rag_service import upload_document, ask_document
+from schemas import AskRequest, AskResponse, UploadRequest, UploadResponse, DocRead
+from services.rag_service import upload_document, ask_document, delete_document, list_documents
 
 app = FastAPI()
 
@@ -23,3 +23,18 @@ async def ask_doc(request: AskRequest):
             detail="Result not found"
         )
     return AskResponse(answear=result)
+
+@app.get("/documents", response_model=list[DocRead])
+async def list_docs():
+    result = await list_documents()
+    return [DocRead(doc_id=doc_id) for doc_id in result]
+
+@app.delete("/documents/{doc_id}")
+async def delete_doc(doc_id: str):
+    result = await delete_document(doc_id=doc_id)
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail="Result not found"
+        )
+    return {"status": "deleted"}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class UploadRequest(BaseModel):
     doc_id: str
@@ -15,4 +15,5 @@ class AskRequest(BaseModel):
 class AskResponse(BaseModel):
     answear: str
 
-    
+class DocRead(BaseModel):
+    doc_id: str

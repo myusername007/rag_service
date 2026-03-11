@@ -44,3 +44,18 @@ async def ask_document(question: str, doc_id: str | None = None, n_results: int 
         ]
     )
     return message.content[0].text
+
+
+async def list_documents() -> list[str]:
+    results = collection.get()
+    doc_ids = list(set(
+        m["doc_id"] for m in results["metadatas"]
+    ))
+    return doc_ids
+
+async def delete_document(doc_id: str) -> int:
+    results = collection.get(where={"doc_id": doc_id})
+    ids = results["ids"]
+    if ids:
+        collection.delete(ids=ids)
+    return len(ids)
